@@ -22,7 +22,7 @@ module.exports = yeoman.Base.extend({
 
     this.option('babel', {
       type: Boolean,
-      defaults: true,
+      defaults: false,
       desc: 'Compile ES2015 using Babel'
     });
 
@@ -150,9 +150,10 @@ module.exports = yeoman.Base.extend({
   },
 
   gulpfile: function () {
+    var gulpfileName = this.options.babel ? 'gulpfile.babel.js' : 'gulpfile.js';
     this.fs.copyTpl(
-      this.templatePath('gulpfile.babel.js'),
-      this.destinationPath('gulpfile.babel.js'),
+      this.templatePath('gulpfile.js'),
+      this.destinationPath(gulpfileName),
       {
         date: (new Date).toISOString().split('T')[0],
         appname: this.appname,
@@ -285,6 +286,9 @@ module.exports = yeoman.Base.extend({
   },
 
   babel: function () {
+    if (!this.options.babel) {
+      return;
+    }
     this.fs.copy(
       this.templatePath('babelrc'),
       this.destinationPath('.babelrc')

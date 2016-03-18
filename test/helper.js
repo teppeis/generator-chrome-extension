@@ -6,8 +6,7 @@ module.exports = {
   run: function (options, prompts, done) {
     helpers.run(path.join(__dirname, '../app'))
       .withOptions(assign({
-        'skip-install': true,
-        'babel': true
+        'skip-install': true
       }, options))
       .withPrompts(assign({
         'name': 'temp',

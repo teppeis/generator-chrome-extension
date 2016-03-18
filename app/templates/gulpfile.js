@@ -1,9 +1,11 @@
+'use strict';
+
 // generated on <%= date %> using <%= pkg.name %> <%= pkg.version %>
-import gulp from 'gulp';
-import gulpLoadPlugins from 'gulp-load-plugins';
-import del from 'del';
-import runSequence from 'run-sequence';
-import {stream as wiredep} from 'wiredep';
+const gulp = require('gulp');
+const gulpLoadPlugins = require('gulp-load-plugins');
+const del = require('del');
+const runSequence = require('run-sequence');
+const wiredep = require('wiredep').stream;
 
 const $ = gulpLoadPlugins();
 
@@ -31,7 +33,7 @@ function lint(files, options) {
 
 gulp.task('lint', lint('app/scripts<% if (babel) { %>.babel<% } %>/**/*.js', {
   env: {
-    es6: <% if (babel) { %>true<% } else { %>false<% } %>
+    es6: true
   }
 }));
 
@@ -63,11 +65,9 @@ gulp.task('styles', () => {
 
 gulp.task('html', <% if (sass) { %>['styles'],<% } %> () => {
   return gulp.src('app/*.html')
-    .pipe($.sourcemaps.init())
-    .pipe($.if('*.js', $.uglify()))
+    .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))<% if (babel) { %>
+    .pipe($.if('*.js', $.uglify()))<% } %>
     .pipe($.if('*.css', $.minifyCss({compatibility: '*'})))
-    .pipe($.sourcemaps.write())
-    .pipe($.useref({searchPath: ['.tmp', 'app', '.']}))
     .pipe($.if('*.html', $.minifyHtml({conditionals: true, loose: true})))
     .pipe(gulp.dest('dist'));
 });
@@ -83,10 +83,8 @@ gulp.task('chromeManifest', () => {
         ]
       }
   }))
-  .pipe($.if('*.css', $.minifyCss({compatibility: '*'})))
-  .pipe($.if('*.js', $.sourcemaps.init()))
-  .pipe($.if('*.js', $.uglify()))
-  .pipe($.if('*.js', $.sourcemaps.write('.')))
+  .pipe($.if('*.css', $.minifyCss({compatibility: '*'})))<% if (babel) { %>
+  .pipe($.if('*.js', $.uglify()))<% } %>
   .pipe(gulp.dest('dist'));
 });
 <% if (babel) { %>
@@ -98,7 +96,7 @@ gulp.task('babel', () => {
       .pipe(gulp.dest('app/scripts'));
 });
 <% } %>
-gulp.task('clean', del.bind(null, ['.tmp', 'dist']));
+gulp.task('clean', () => del(['.tmp', 'dist']));
 
 gulp.task('watch', ['lint', <% if (babel) { %>'babel', <% } %>'html'], () => {
   $.livereload.listen();
@@ -128,14 +126,14 @@ gulp.task('wiredep', () => {
     .pipe(gulp.dest('app'));
 });
 
-gulp.task('package', function () {
-  var manifest = require('./dist/manifest.json');
+gulp.task('package', () => {
+  const manifest = require('./dist/manifest.json');
   return gulp.src('dist/**')
       .pipe($.zip('<%= appname %>-' + manifest.version + '.zip'))
       .pipe(gulp.dest('package'));
 });
 
-gulp.task('build', (cb) => {
+gulp.task('build', cb => {
   runSequence(
     'lint'<% if (babel) { %>, 'babel'<% } %>, 'chromeManifest',
     ['html', 'images', 'extras'],

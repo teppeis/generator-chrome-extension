@@ -17,17 +17,11 @@ describe('Generator test', function () {
       assert.file([
         '.editorconfig',
         '.bowerrc',
-        '.babelrc',
         '.gitignore',
         '.gitattributes',
-        'gulpfile.babel.js',
         'package.json',
         'bower.json',
-      ]);
-
-      assert.fileContent([
-        ['gulpfile.babel.js', /import gulp/],
-        ['package.json', /babel-core/]
+        'app/manifest.json',
       ]);
 
       done();
@@ -35,11 +29,14 @@ describe('Generator test', function () {
   });
 
   it('creates expected files with babel', function (done) {
-    helper.run({}, {
+    helper.run({
+      babel: true
+    }, {
       'uiAction': 'No'
     }, function () {
       assert.file([
-        'app/manifest.json',
+        '.babelrc',
+        'gulpfile.babel.js',
         'app/scripts.babel/background.js',
         'app/scripts.babel/chromereload.js',
       ]);
@@ -48,6 +45,8 @@ describe('Generator test', function () {
         ['app/scripts.babel/background.js', /details =>/],
         ['app/scripts.babel/chromereload.js', /const\sLIVERELOAD_HOST\s=/],
         ['gulpfile.babel.js', /gulp.task\('babel'/],
+        ['package.json', /babel-core/],
+        ['package.json', /gulp-babel/],
       ]);
 
       done();
@@ -61,18 +60,26 @@ describe('Generator test', function () {
       'uiAction': 'No'
     }, function () {
       assert.file([
+        'gulpfile.js',
         'app/scripts/background.js',
         'app/scripts/chromereload.js',
       ]);
 
       assert.noFile([
-        'app/scripts.babel/background.js',
-        'app/scripts.babel/chromereload.js'
+        '.babelrc',
+        'gulpfile.babel.js',
+        'app/scripts.babel',
       ]);
 
       assert.fileContent([
-        ['app/scripts/background.js', /function \(details\)/],
-        ['app/scripts/chromereload.js', /var\sLIVERELOAD_HOST\s=/],
+        ['app/scripts/background.js', /details =>/],
+        ['app/scripts/chromereload.js', /const\sLIVERELOAD_HOST\s=/],
+      ]);
+
+      assert.noFileContent([
+        ['gulpfile.js', /gulp.task\('babel'/],
+        ['package.json', /babel-core/],
+        ['package.json', /gulp-babel/],
       ]);
 
       done();
@@ -90,10 +97,8 @@ describe('Generator test', function () {
       ]);
 
       assert.fileContent([
-        ['app/scripts.babel/background.js', /details =>/],
-        ['app/scripts.babel/chromereload.js', /const\sLIVERELOAD_HOST\s=/],
-        ['gulpfile.babel.js', /gulp.task\('styles'/],
-        ['gulpfile.babel.js', /'babel',/]
+        ['gulpfile.js', /gulp.task\('styles'/],
+        ['package.json', /gulp-sass/],
       ]);
 
       done();
